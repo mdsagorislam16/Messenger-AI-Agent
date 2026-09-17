@@ -1,0 +1,480 @@
+{
+  "name": "Fb agrent",
+  "nodes": [
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "936e6577-8513-4da9-8c9e-dc809697671a",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "576ac74d-63a7-468c-8e00-8d5866980588",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1312,
+        96
+      ],
+      "webhookId": "936e6577-8513-4da9-8c9e-dc809697671a"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "557be7d6-d2ca-4f37-a410-bd26cb2aae1f",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "23248cb1-a7c4-4f6e-b75a-3da4ae8a18f3",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "mdsagorislam",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "3fa1e40d-be56-44e0-9f05-1f98e949aa23",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -1216,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {}
+      },
+      "id": "3977d2d7-ff5b-4b8e-bfd7-11745a406b8a",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -768,
+        -384
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.text }}",
+                    "rightValue": "={{ $json.body.entry[0].messaging[0].message.text }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "77ad1f11-9a15-4fec-96cd-cd1201d7eceb"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "33c5b077-f85c-4ced-8d25-5504500570aa",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].payload.url }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e7eba9b9-8932-4742-9846-ce7200d7a73b",
+      "name": "Switch",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1152,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.body.entry[0].messaging[0].message.attachments[0].payload.url }}",
+        "options": {}
+      },
+      "id": "dd141558-51e9-4212-b087-01344343b726",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -976,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.6-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.6-flash"
+        },
+        "text": "System Message:\n\nYou are an image analysis assistant.\nAnalyze the provided image carefully and describe only what is clearly visible.\n\nFollow these rules strictly:\n\nDo not guess, assume, or infer hidden details.\n\nDo not add opinions, emotions, or creative interpretation.\n\nIf something is unclear, say \"Not clearly visible.\"\n\nKeep the response short and precise.\n\nDo not mention AI, models, or analysis process.\n\nOutput in plain text with clear sentences only.",
+        "inputType": "binary",
+        "options": {}
+      },
+      "id": "fbba464b-175a-4066-957d-479ba8eea209",
+      "name": "Analyze an image",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -816,
+        128
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bLlddrWDEynJsQZa",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.content.parts[0].text }}",
+        "options": {
+          "systemMessage": "তুমি একটা প্রোডাক্ট ইমেজ অ্যানালাইজার। তোমাকে একটা ছবির বিস্তারিত বিবরণ দেওয়া হবে।\n\nতোমার কাজ:\n- ইনপুটে যদি প্রোডাক্টের বিবরণ (কাপড়, পোশাক, রঙ, ডিজাইন ইত্যাদি) থাকে, তাহলে সংক্ষেপে ১-২ লাইনে সামারি করে লিখবে এবং শুরুতে লিখবে: \"IMAGE_RECEIVED:\" তারপর সংক্ষিপ্ত বিবরণ।\n- যদি ইনপুট খালি থাকে বা কোনো ছবি না থাকে, তাহলে লিখবে: \"NO_IMAGE\"\n\nঅতিরিক্ত কোনো ব্যাখ্যা বা মন্তব্য ���োগ করবে না।"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -688,
+        272
+      ],
+      "id": "83286907-c445-4f9c-92b5-b153c2e46250",
+      "name": "Summarizer agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        432
+      ],
+      "id": "34ff6c0b-d155-4eb5-a380-e56e340d5217",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bLlddrWDEynJsQZa",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.output }}",
+        "options": {
+          "systemMessage": "তুমি একটা ই-কমার্স/অনলাইন শপের কাস্টমার সাপোর্ট অ্যাসিস্ট্যান্ট।\n\nতোমাকে যে ইনপুট দেওয়া হবে তার শুরুতে যদি \"IMAGE_RECEIVED:\" থাকে, তাহলে হুবহু এই বাক্যটা বাংলায় রিপ্লাই দেবে:\n\"আসসালামু আলাইকুম। এই পণ্যটির মূল্য ১০৫০ টাকা। স্টক আছে কিনা চেক করে অল্প সময়ের মধ্যে আপনাকে জানিয়ে দিচ্ছি।\"\n\nযদি ইনপুটে \"NO_IMAGE\" থাকে বা সাধারণ টেক্সট মেসেজ থাকে (ছবি নেই), তাহলে হুবহু এই বাক্যটা বাংলায় রিপ্লাই দেবে:\n\"ওয়ালাইকুম আসসালাম। আপনাকে কীভাবে সাহায্য করতে পারি? আপনি যদি কোনো পণ্যের ছবি পাঠান, তবে আমি সেটির স্টক চেক করে আপনাকে বিস্তারিত জানিয়ে দিতে পারব।\"\n\nনিয়ম:\n- দাম সবসময় ১০৫০ টাকা ফিক্সড থাকবে।\n- উপরের বাক্য দুটোর একটা হুবহু ব্যবহার করবে, নিজে থেকে নতুন কিছু লিখবে না।\n- অতিরিক্ত কোনো তথ্য যোগ করবে না।"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -432,
+        96
+      ],
+      "id": "c8e6f5bf-57ea-4b23-8dd6-b00e08caad2c",
+      "name": "Question argent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -448,
+        464
+      ],
+      "id": "3f82d06d-5d64-4aa3-a77a-2b4ea2186133",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bLlddrWDEynJsQZa",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v26.0/{{ $('Webhook').item.json.body.entry[0].messaging[0].recipient.id }}/messages?access_token=EAAXTMZCeXioQBSQkSFYS5wv070GYHcDTWKu3fETFccsv5FdWYiHkeyVZCZCdXIMJkZAMZCcOjYn1rNBdKSjZCU6VHZCrvs73OuKvaXb9cSbPAxx2KqjMoTAt5QSmot8a1SY09ZB0ufRH4YNDN87qQKvcb0NKZCUXaNsCqTCXvYSTXXdLP0eG7muqQCn9RuoPhOUEH4ZA3f",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  recipient: {\n    id: $('Webhook').item.json.body.entry[0].messaging[0].sender.id\n  },\n  messaging_type: \"RESPONSE\",\n  message: {\n    text: $json.output\n  }\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -16,
+        96
+      ],
+      "id": "1cd933d5-b47b-462d-b732-dba8eb2d2e36",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.entry[0].messaging[0].message.text }}",
+        "options": {
+          "systemMessage": "তুমি একটা ই-কমার্স/অনলাইন শপের কাস্টমার সাপোর্ট অ্যাসিস্ট্যান্ট। কাস্টমারের মেসেজ বুঝে নিচের ৬টি ক্যাটাগরির মধ্যে সবচেয়ে প্রাসঙ্গিক উত্তরটা বাংলায় হুবহু দেবে:\n\n১. সাধারণ মেসেজ (সালাম, হাই, হ্যালো, আপা/ভাইয়া আছেন, কেমন আছেন — কোনো নির্দিষ্ট প্রশ্ন নেই):\n\"ওয়ালাইকুম আসসালাম। আমাদের পেজে স্বাগতম! আপনাকে কীভাবে সাহায্য করতে পারি? পছন্দের পণ্যের ছবি বা নাম জানালে আমি দাম, স্টক এবং অন্যান্য বিস্তারিত তথ্য জানিয়ে দিতে পারব।\"\n\n২. দাম/প্রাইস/কত টাকা জানতে চাইলে:\n\"খিমার প্লাজু\nরেগুলার প্রাইস: ১২০০ টাকা\nঅফার প্রাইস: মাত্র ১০০০ টাকা!\n\nঅর্ডার করতে একটি টাকাও অগ্রিম দিতে হবে না। প্রোডাক্ট হাতে পেয়ে চেক করে রিসিভ করতে পারবেন।\nঢাকার মধ্যে ডেলিভারি চার্জ ৭০ টাকা, ঢাকার বাহিরে ডেলিভারি চার্জ ১১০ টাকা।\"\n\n৩. অর্ডার করতে চাইলে (অর্ডার করব, নিব, কনফার্ম করেন ইত্যাদি):\n\"ম্যাম/স্যার, অর্ডার কনফার্ম করতে নিচের তথ্যগুলো দিন:\n\nনাম: \nগ্রাম/মহল্লা: \nথানা: \nজেলা: \nফোন নাম্বার: \n\nধন্যবাদ ম্যাম।\"\n\n৪. ডেলিভারি সময়/কতদিন লাগবে জানতে চাইলে:\n\"ডেলিভারি পেতে ১ থেকে ৩ দিন সময় লাগবে।\"\n\n৫. ফেব্রিক/কাপড়ের মান জানতে চাইলে:\n\"➡️ ফেব্রিকঃ সফট চায়না লিনেন🌹\n➡️ ফেব্রিকটি সামার ফ্রেন্ডলি🌹\n➡️ খুবই কমফোর্টেবল কাপড়🌹🌹\"\n\n৬. সাইজ/লম্বা কত জানতে চাইলে:\n\"খিমার: সামনে ৫৪ ইঞ্চি, পিছনে ৫৮ ইঞ্চি\nনিকাব: ৩০ ইঞ্চি\nপাজামা লং: ৪০ ইঞ্চি\nকোমড়ে এলাস্টিক দেওয়া, তাই সাইজের কোনো ঝামেলা নেই।\"\n\nনিয়ম:\n- কাস্টমারের মেসেজ পড়ে বুঝে উপরের ৬টি ক্যাটাগরির মধ্যে সবচেয়ে প্রাসঙ্গিকটা বেছে হুবহু রিপ্লাই দেবে।\n- একসাথে একাধিক প্রশ্ন করলে (যেমন দাম ও সাইজ দুটোই জানতে চাইলে) প্রাসঙ্গিক সবগুলোর উত্তর একসাথে দেবে।\n- উপরের বাক্যগুলোর বাইরে নিজে থেকে নতুন তথ্য তৈরি করবে না বা বাক্য পরিবর্তন করবে না।\n- ইমোজি ও লাইন ফরম্যাটিং হুবহু অক্ষত রাখবে।"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -864,
+        -160
+      ],
+      "id": "fc085f93-d8ec-4428-b83d-73316865c3a7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -896,
+        -16
+      ],
+      "id": "e481e3f7-599b-43c3-9776-a2a378f928aa",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "bLlddrWDEynJsQZa",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v26.0/{{ $('Webhook').item.json.body.entry[0].messaging[0].recipient.id }}/messages?access_token=EAAXTMZCeXioQBSQkSFYS5wv070GYHcDTWKu3fETFccsv5FdWYiHkeyVZCZCdXIMJkZAMZCcOjYn1rNBdKSjZCU6VHZCrvs73OuKvaXb9cSbPAxx2KqjMoTAt5QSmot8a1SY09ZB0ufRH4YNDN87qQKvcb0NKZCUXaNsCqTCXvYSTXXdLP0eG7muqQCn9RuoPhOUEH4ZA3f",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  recipient: {\n    id: $('Webhook').item.json.body.entry[0].messaging[0].sender.id\n  },\n  messaging_type: \"RESPONSE\",\n  message: {\n    text: $json.output\n  }\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -528,
+        -160
+      ],
+      "id": "1aa6dbe7-ae35-4df0-87f0-13c4effd71df",
+      "name": "HTTP Request2"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Summarizer agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summarizer agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarizer agent": {
+      "main": [
+        [
+          {
+            "node": "Question argent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Question argent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Question argent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "pinData": {},
+  "triggerCount": 1,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
